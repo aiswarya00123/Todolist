@@ -1,8 +1,8 @@
 let todos = [];
 
-// Add a new todo with optional due date
+// Add a new todo with optional due date, default status is "Pending"
 function addTodo(task, dueDate = "") {
-    todos.push({ task, completed: false, dueDate, editing: false });
+    todos.push({ task, status: "Pending", dueDate, editing: false });
     console.log(`Added: "${task}"${dueDate ? " (Due: " + dueDate + ")" : ""}`);
 }
 
@@ -23,19 +23,18 @@ function listTodos() {
         return;
     }
     todos.forEach((todo, i) => {
-        const status = todo.completed ? "[x]" : "[ ]";
+        const status = todo.status === "Completed" ? "[x]" : "[ ]";
         const due = todo.dueDate ? ` (Due: ${todo.dueDate})` : "";
-        console.log(`${i}: ${status} ${todo.task}${due}`);
+        console.log(`${i}: ${status} ${todo.task}${due} [${todo.status}]`);
     });
 }
 
-// Mark a todo as completed
+// Mark a todo as completed (change status)
 function completeTodo(index) {
     if (index >= 0 && index < todos.length) {
-        todos[index].completed = true;
+        todos[index].status = "Completed";
         console.log(`Completed: "${todos[index].task}"`);
     } else {
         console.log("Invalid index.");
     }
 }
-
