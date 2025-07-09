@@ -38,3 +38,4 @@ function completeTodo(index) {
         console.log("Invalid index.");
     }
 }
+

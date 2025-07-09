@@ -12,7 +12,7 @@
             min-height: 100vh;
         }
         .container-todo {
-            max-width: 500px;
+            max-width: 800px;
             margin: 3em auto;
             background: #fff;
             border-radius: 16px;
@@ -47,14 +47,20 @@
         .todo-list button {
             margin-left: 0.5em;
         }
+        .search-row {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.5em;
+            margin-bottom: 1.2em;
+        }
         @media (max-width: 600px) {
             .container-todo {
                 padding: 1.2em 0.5em;
             }
-            .input-row {
+            .input-row, .search-row {
                 flex-direction: column !important;
             }
-            .input-row > * {
+            .input-row > *, .search-row > * {
                 width: 100% !important;
                 margin-bottom: 0.7em !important;
             }
@@ -64,6 +70,12 @@
 <body>
    <div class="container-todo shadow">
     <h1 class="text-center mb-4 fw-bold" style="color:#2d3a4a;">Todo List</h1>
+    <!-- Search functionality at the top -->
+    <div class="search-row d-flex flex-nowrap align-items-center gap-2 mb-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search todos..." style="width:70%;">
+        <button class="btn btn-outline-secondary" type="button" onclick="searchAndRender()">Search</button>
+        <button class="btn btn-outline-dark" type="button" onclick="clearSearch()">Clear</button>
+    </div>
     <form class="input-row d-flex flex-nowrap align-items-center gap-2 mb-3" onsubmit="addTodoFromInput(); return false;">
         <input type="text" id="todoInput" class="form-control" placeholder="Add a new todo" style="width:50%;min-width:120px;">
         <input type="date" id="dueDateInput" class="form-control" style="width:35%;min-width:110px;">
@@ -73,10 +85,26 @@
 </div>
     <script src="todo.js"></script>
     <script>
+        let searchResults = null;
+
+        // --- LocalStorage Support ---
+        function saveTodosToStorage() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+        function loadTodosFromStorage() {
+            const data = localStorage.getItem('todos');
+            if (data) {
+                todos = JSON.parse(data);
+            } else {
+                todos = [];
+            }
+        }
+
         function renderTodos() {
             const list = document.getElementById('todoList');
             list.innerHTML = '';
-            todos.forEach((todo, i) => {
+            const items = searchResults !== null ? searchResults : todos;
+            items.forEach((todo, i) => {
                 const li = document.createElement('li');
                 li.className = 'd-flex align-items-center ' + (todo.completed ? 'completed' : '');
 
@@ -118,6 +146,7 @@
                     span.title = 'Click to mark as completed';
                     span.onclick = () => {
                         completeTodo(i);
+                        saveTodosToStorage();
                         renderTodos();
                     };
                     li.appendChild(span);
@@ -145,7 +174,6 @@
                     removeBtn.onclick = (e) => {
                         e.stopPropagation();
                         removeTodo(i);
-                        renderTodos();
                     };
                     li.appendChild(removeBtn);
                 }
@@ -153,20 +181,42 @@
             });
         }
 
+        function searchAndRender() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!keyword) {
+                searchResults = null;
+                renderTodos();
+                return;
+            }
+            searchResults = todos.filter(todo =>
+                todo.task.toLowerCase().includes(keyword) ||
+                (todo.dueDate && todo.dueDate.toLowerCase().includes(keyword))
+            );
+            renderTodos();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            searchResults = null;
+            renderTodos();
+        }
+
         function startEdit(index) {
-            todos[index].editing = true;
+            (searchResults || todos)[index].editing = true;
             renderTodos();
         }
 
         function saveEdit(index, newTask, newDueDate) {
-            todos[index].task = newTask.trim() || todos[index].task;
-            todos[index].dueDate = newDueDate;
-            todos[index].editing = false;
+            const arr = searchResults || todos;
+            arr[index].task = newTask.trim() || arr[index].task;
+            arr[index].dueDate = newDueDate;
+            arr[index].editing = false;
+            saveTodosToStorage();
             renderTodos();
         }
 
         function cancelEdit(index) {
-            todos[index].editing = false;
+            (searchResults || todos)[index].editing = false;
             renderTodos();
         }
 
@@ -179,13 +229,24 @@
                 addTodo(task, dueDate);
                 input.value = '';
                 dueInput.value = '';
+                searchResults = null;
+                saveTodosToStorage();
                 renderTodos();
             } else {
                 alert("Please enter both a task and a due date.");
             }
         }
 
-        // Remove example usage from todo.js if present
-        todos = [];
+        // --- Override removeTodo to support localStorage ---
+        function removeTodo(index) {
+            if (index >= 0 && index < todos.length) {
+                todos.splice(index, 1);
+                saveTodosToStorage();
+                renderTodos();
+            }
+        }
+
+        // --- Load from localStorage on page load ---
+        loadTodosFromStorage();
         renderTodos();
     </script>
