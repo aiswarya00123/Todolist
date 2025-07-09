@@ -38,3 +38,29 @@ function completeTodo(index) {
         console.log("Invalid index.");
     }
 }
+ // Only JavaScript here!
+function exportTodos(type) {
+    let dataStr, fileName, mimeType;
+    if (type === 'json') {
+        dataStr = JSON.stringify(todos, null, 2);
+        fileName = 'todos.json';
+        mimeType = 'application/json';
+    } else {
+        dataStr = todos.map(todo =>
+            `[${todo.status}] ${todo.task}${todo.dueDate ? ' (Due: ' + todo.dueDate + ')' : ''}`
+        ).join('\n');
+        fileName = 'todos.txt';
+        mimeType = 'text/plain';
+    }
+    const blob = new Blob([dataStr], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 0);
+}

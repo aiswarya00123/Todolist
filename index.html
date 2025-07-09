@@ -5,32 +5,21 @@
     <title>Todo List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #e0e7ff 0%, #f7f7fa 100%);
             min-height: 100vh;
+            padding: 2em;
         }
         .container-todo {
-            max-width: 800px;
-            margin: 3em auto;
+            max-width: 850px;
+            margin: 0 auto;
             background: #fff;
             border-radius: 24px;
             box-shadow: 0 8px 32px rgba(60,60,120,0.13), 0 1.5px 4px rgba(0,0,0,0.06);
-            padding: 2.5em 2em 2em 2em;
-        }
-        .input-row, .search-row {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 0.5em;
-            margin-bottom: 1.2em;
-            background: #f8faff;
-            border-radius: 10px;
-            padding: 0.7em 1em;
-            box-shadow: 0 1px 4px rgba(60,60,120,0.07);
-        }
-        .todo-list {
-            margin-top: 1.5em;
+            padding: 2.5em 2em;
         }
         .todo-list li {
             background: linear-gradient(90deg, #f8faff 80%, #e0e7ff 100%);
@@ -43,45 +32,38 @@
             justify-content: space-between;
             transition: background 0.2s, box-shadow 0.2s;
             border-left: 5px solid #0078d7;
-            position: relative;
         }
         .todo-list li.completed {
-    /* text-decoration: line-through; */ /* Remove or comment out this line */
-    color: #b3b3b3;
-    background: #f0f0f0;
-    border-left: 5px solid #b3b3b3;
-}
-        
-        .todo-list .due-date-label {
-            font-size: 0.98em;
+            color: #b3b3b3;
+            background: #f0f0f0;
+            border-left: 5px solid #b3b3b3;
+        }
+        .due-date-label {
+            font-size: 0.95em;
             color: #0078d7;
-            margin-left: 1.2em;
-            font-weight: 500;
+            margin-left: 1em;
             background: #e0e7ff;
-            padding: 0.2em 0.7em;
+            padding: 0.3em 0.7em;
             border-radius: 6px;
             white-space: nowrap;
         }
-        .todo-list .badge {
-            font-size: 1em;
+        .btn i {
+            margin-right: 4px;
+        }
+        .btn {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            transition: 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
         @media (max-width: 600px) {
-            .container-todo {
-                padding: 1.2em 0.5em;
-            }
-            .input-row, .search-row {
-                flex-direction: column !important;
-            }
-            .input-row > *, .search-row > * {
-                width: 100% !important;
-                margin-bottom: 0.7em !important;
-            }
             .todo-list li {
                 flex-direction: column;
                 align-items: flex-start;
-                padding: 1em 0.7em;
             }
-            .todo-list .due-date-label {
+            .due-date-label {
                 margin-left: 0;
                 margin-top: 0.5em;
             }
@@ -89,45 +71,79 @@
     </style>
 </head>
 <body>
+
 <div class="container-todo shadow">
-    <h1 class="text-center mb-4 fw-bold">Todo List</h1>
-    <div class="search-row d-flex flex-nowrap align-items-center gap-2 mb-4">
-        <input type="text" id="searchInput" class="form-control" placeholder="Search todos..." style="width:70%;">
-        <button class="btn btn-outline-secondary" type="button" onclick="searchAndRender()">Search</button>
-        <button class="btn btn-outline-dark" type="button" onclick="clearSearch()">Clear</button>
+    <h1 class="text-center mb-4 fw-bold text-primary">Todo List</h1>
+
+    <!-- Search and Export -->
+    <div class="row g-2 align-items-center mb-4">
+        <div class="col-md-6">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search todos...">
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary" type="button" onclick="searchAndRender()">
+                <i class="bi bi-search"></i> Search
+            </button>
+            <button class="btn btn-outline-dark" type="button" onclick="clearSearch()">
+                <i class="bi bi-x-circle"></i> Clear
+            </button>
+        </div>
+        <div class="col-auto ms-auto">
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-download"></i> Export As
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                    <li><a class="dropdown-item" href="#" onclick="exportTodos('json')">JSON Text</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportTodos('plain')">Plain Text</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
-    <form class="input-row d-flex flex-nowrap align-items-center gap-2 mb-3" onsubmit="addTodoFromInput(); return false;">
-        <input type="text" id="todoInput" class="form-control" placeholder="Add a new todo" style="width:50%;min-width:120px;">
-        <input type="date" id="dueDateInput" class="form-control" style="width:35%;min-width:110px;">
-        <button type="submit" class="btn btn-primary" style="width:auto;min-width:70px;white-space:nowrap;">Add</button>
+
+    <!-- Add Todo -->
+    <form class="row g-2 mb-4" onsubmit="addTodoFromInput(); return false;">
+        <div class="col-md-6">
+            <input type="text" id="todoInput" class="form-control" placeholder="Add a new todo">
+        </div>
+        <div class="col-md-4">
+            <input type="date" id="dueDateInput" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-plus-circle"></i> Add
+            </button>
+        </div>
     </form>
+
+    <!-- Todo List -->
     <ul id="todoList" class="todo-list list-unstyled"></ul>
 </div>
-<script src="todo.js"></script>
+
+<!-- JavaScript -->
 <script>
+    let todos = [];
     let searchResults = null;
 
     function saveTodosToStorage() {
         localStorage.setItem('todos', JSON.stringify(todos));
     }
+
     function loadTodosFromStorage() {
         const data = localStorage.getItem('todos');
-        if (data) {
-            todos = JSON.parse(data);
-        } else {
-            todos = [];
-        }
+        todos = data ? JSON.parse(data) : [];
     }
 
     function renderTodos() {
         const list = document.getElementById('todoList');
         list.innerHTML = '';
-        const items = searchResults !== null ? searchResults : todos;
+        const items = searchResults ?? todos;
+
         items.forEach((todo, i) => {
             const li = document.createElement('li');
-            li.className = 'd-flex align-items-center ' + (todo.status === "Completed" ? 'completed' : '');
+            li.className = todo.status === "Completed" ? 'completed' : '';
 
-            // Tick button
             const tickBtn = document.createElement('button');
             tickBtn.className = 'btn btn-outline-success btn-sm me-2';
             tickBtn.innerHTML = todo.status === "Completed"
@@ -142,37 +158,32 @@
             };
             li.appendChild(tickBtn);
 
-            // Task text
             const span = document.createElement('span');
             span.textContent = todo.task;
             span.style.flex = '1';
             li.appendChild(span);
 
-            // Status badge
             const statusBadge = document.createElement('span');
             statusBadge.className = 'badge ms-2 ' + (todo.status === "Completed" ? 'bg-success' : 'bg-warning text-dark');
             statusBadge.textContent = todo.status;
             li.appendChild(statusBadge);
 
-            // Due date
             if (todo.dueDate) {
                 const due = document.createElement('span');
                 due.textContent = "Due: " + todo.dueDate;
-                due.className = "due-date-label ms-3";
+                due.className = "due-date-label";
                 li.appendChild(due);
             }
 
-            // Edit button
             const editBtn = document.createElement('button');
             editBtn.textContent = 'Edit';
-            editBtn.className = 'btn btn-info btn-sm edit-btn me-1 text-white';
+            editBtn.className = 'btn btn-info btn-sm me-1 text-white';
             editBtn.onclick = (e) => {
                 e.stopPropagation();
                 startEdit(i);
             };
             li.appendChild(editBtn);
 
-            // Remove button
             const removeBtn = document.createElement('button');
             removeBtn.textContent = 'Remove';
             removeBtn.className = 'btn btn-danger btn-sm ms-1';
@@ -190,15 +201,11 @@
 
     function searchAndRender() {
         const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-        if (!keyword) {
-            searchResults = null;
-            renderTodos();
-            return;
-        }
-        searchResults = todos.filter(todo =>
-            todo.task.toLowerCase().includes(keyword) ||
-            (todo.dueDate && todo.dueDate.toLowerCase().includes(keyword))
-        );
+        searchResults = keyword
+            ? todos.filter(todo =>
+                todo.task.toLowerCase().includes(keyword) ||
+                (todo.dueDate && todo.dueDate.toLowerCase().includes(keyword)))
+            : null;
         renderTodos();
     }
 
@@ -208,23 +215,37 @@
         renderTodos();
     }
 
+    function completeTodo(index) {
+        (searchResults ?? todos)[index].status = "Completed";
+    }
+
+    function removeTodo(index) {
+        const arr = searchResults ?? todos;
+        const todoToRemove = arr[index];
+        todos = todos.filter(todo => todo !== todoToRemove);
+        searchResults = null;
+    }
+
     function startEdit(index) {
-        (searchResults || todos)[index].editing = true;
-        renderTodos();
+        const task = prompt("Edit your task:", (searchResults ?? todos)[index].task);
+        const due = prompt("Edit due date (YYYY-MM-DD):", (searchResults ?? todos)[index].dueDate);
+        if (task) saveEdit(index, task, due);
     }
 
     function saveEdit(index, newTask, newDueDate) {
-        const arr = searchResults || todos;
+        const arr = searchResults ?? todos;
         arr[index].task = newTask.trim() || arr[index].task;
         arr[index].dueDate = newDueDate;
-        arr[index].editing = false;
         saveTodosToStorage();
         renderTodos();
     }
 
-    function cancelEdit(index) {
-        (searchResults || todos)[index].editing = false;
-        renderTodos();
+    function addTodo(task, dueDate) {
+        todos.push({
+            task,
+            dueDate,
+            status: "Pending"
+        });
     }
 
     function addTodoFromInput() {
@@ -244,9 +265,23 @@
         }
     }
 
-    // Load from localStorage on page load
+    function exportTodos(type) {
+        const data = todos.map(t => `${t.task} [${t.dueDate}] - ${t.status}`);
+        const json = JSON.stringify(todos, null, 2);
+        const blob = new Blob(
+            [type === 'json' ? json : data.join('\n')],
+            { type: 'text/plain;charset=utf-8' }
+        );
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `todos.${type === 'json' ? 'json' : 'txt'}`;
+        link.click();
+    }
+
+    // Init
     loadTodosFromStorage();
     renderTodos();
 </script>
+
 </body>
 </html>
